@@ -38,10 +38,13 @@ def createWindow():
     )
     
     canvas.bind(
-        "Configure",
-        lambda e: canvas.itemconfig(canvasWindow, width=e.width)
+        "<Configure>",
+        lambda e: canvas.itemconfig(
+            canvasWindow,
+            width=e.width
+        )
     )
-    
+        
     
 
     canvas.pack(side="left", fill="both", expand=True)
@@ -53,7 +56,7 @@ def createWindow():
     def scroll(event):
         canvas.yview_scroll(-1 * (event.delta // 120), "units")
         
-    canvas.bind(
+    canvas.bind_all(
         "<MouseWheel>", scroll
     )
     
@@ -61,22 +64,31 @@ def createWindow():
         item = listText.get()
         if item:
             
-            # itemFrame = tk.Frame(listFrame)
-            # itemFrame.pack(fill="x", pady=2)
+            itemFrame = tk.Frame(listFrame)
+            itemFrame.pack(fill="x", pady=2)
             
             tk.Label(
-                listFrame,
+                itemFrame,
                 text=f"• {item}",
                 anchor="w",
                 font=("arial", 15)
-            ).pack(fill="x")
+            ).pack(side="left", fill="x", expand=True)
             
-            # menuButton = tk.Menubutton(
-            #     itemFrame,
-            #     text="⋮",
-            #     font=("arial", 15)
-            # )
-            # menuButton.pack(side="right")
+            menuButton = tk.Menubutton(
+                itemFrame,
+                text="⋮",
+                font=("arial", 20)
+            )
+            menuButton.pack(side="right")
+            
+            menu = tk.Menu(menuButton, tearoff=0)
+            menu.add_command(label="Mark as done")
+            menu.add_command(label="Edit")
+            menu.add_command(label="Delete", command=itemFrame.destroy)
+            
+            
+            
+            menuButton.config(menu=menu)
             
             listText.delete(0, tk.END)
     
