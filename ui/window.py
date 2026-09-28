@@ -115,8 +115,23 @@ def createWindow():
                     
         editEntry.bind("<Return>", saveEdit)
         
+    def refreshTasks():
+        for widget in listFrame.winfo_children():
+            widget.destroy()
         
+        for task in tasks:
+            createTask(task)
     
+    def reorderTask(task, direction):
+        index = tasks.index(task)
+        
+        if direction == "up" and index > 0:
+            tasks[index], tasks[index - 1] = tasks[index - 1], tasks[index]
+        elif direction == "down" and index < len(tasks) - 1:
+            tasks[index], tasks[index + 1] = tasks[index + 1], tasks[index]
+
+        saveTasks(tasks)
+        refreshTasks()
     
     
     
@@ -136,6 +151,8 @@ def createWindow():
             listText.delete(0, tk.END)
             
     def createTask(task):
+        index = tasks.index(task)
+        
         itemFrame = tk.Frame(listFrame)
         itemFrame.pack(fill="x", pady=2)
                     
@@ -159,18 +176,20 @@ def createWindow():
         
         reoderButtonsFrame = tk.Frame(itemFrame)
         reoderButtonsFrame.pack()
-        
-        buttonUp = tk.Button(
-            reoderButtonsFrame,
-            text="▲",
-            font=("arial", 5)
-        )
-        buttonUp.grid(row=1, column=1)
+        if index > 0:
+            buttonUp = tk.Button(
+                reoderButtonsFrame,
+                text="▲",
+                font=("arial", 5),
+                command=lambda: reorderTask(task, "up")
+            )
+            buttonUp.grid(row=1, column=1)
         
         buttonDown = tk.Button(
             reoderButtonsFrame,
             text="▼",
-            font=("arial", 5)
+            font=("arial", 5),
+            command=lambda: reorderTask(task, "down")
         )
         buttonDown.grid(row=2, column=1)
         
