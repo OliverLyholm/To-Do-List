@@ -1,4 +1,6 @@
 import tkinter as tk
+from functions.functions import loadTasks, saveTasks
+
 
 
 
@@ -7,6 +9,8 @@ def createWindow():
     window = tk.Tk()
     window.title("To do list")
     window.geometry("400x550")
+    
+    tasks = loadTasks()
     
     scrollFrame = tk.Frame(window)
     scrollFrame.pack(padx=20, pady=20, fill="both", expand=True)
@@ -60,37 +64,141 @@ def createWindow():
         "<MouseWheel>", scroll
     )
     
+    def deleteTask(task, itemFrame):
+        tasks.remove(task)
+        saveTasks(tasks)
+        itemFrame.destroy()
+        
+    def toggleDone(task, label, menu):
+        task["done"] = not task["done"]
+        saveTasks(tasks)
+
+        if task["done"]:
+            label.config(fg="gray")
+            menu.entryconfig(0, label="Mark as undone")
+        else:
+            label.config(fg="black")
+            menu.entryconfig(0, label="Mark as done")
+
+    def editTask(task, label, itemFrame):
+        currentText = task["text"]
+        
+        label.pack_forget()
+        
+        editEntry = tk.Entry(
+            itemFrame,
+            font=("arial", 15)
+        )
+        
+        editEntry.pack(side="left", fill="x", expand=True)
+        
+        editEntry.insert(0, currentText)
+        editEntry.focus()
+        
+        def saveEdit(event=None):
+            newText = editEntry.get().strip()
+            
+            if newText:
+                task["text"] = newText
+                saveTasks(tasks)
+                
+                editEntry.destroy()
+                
+                
+                label.config(text=f"• {task['text']}")
+                
+                
+                if task["done"]:
+                    label.config(fg="gray")
+                    
+                label.pack(side="left", fill="x", expand=True)
+                    
+        editEntry.bind("<Return>", saveEdit)
+        
+        
+    
+    
+    
+    
     def addItem():
         item = listText.get()
         if item:
             
-            itemFrame = tk.Frame(listFrame)
-            itemFrame.pack(fill="x", pady=2)
+            task = {
+                "text": item,
+                "done": False
+            }
+            tasks.append(task)
+            saveTasks(tasks)
             
-            tk.Label(
-                itemFrame,
-                text=f"• {item}",
-                anchor="w",
-                font=("arial", 15)
-            ).pack(side="left", fill="x", expand=True)
-            
-            menuButton = tk.Menubutton(
-                itemFrame,
-                text="⋮",
-                font=("arial", 20)
-            )
-            menuButton.pack(side="right")
-            
-            menu = tk.Menu(menuButton, tearoff=0)
-            menu.add_command(label="Mark as done")
-            menu.add_command(label="Edit")
-            menu.add_command(label="Delete", command=itemFrame.destroy)
-            
-            
-            
-            menuButton.config(menu=menu)
+            createTask(task)
             
             listText.delete(0, tk.END)
+            
+    def createTask(task):
+        itemFrame = tk.Frame(listFrame)
+        itemFrame.pack(fill="x", pady=2)
+                    
+        label = tk.Label(
+            itemFrame,
+            text=f"• {task['text']}",
+            anchor="w",
+            font=("arial", 15)
+        )
+        label.pack(side="left", fill="x", expand=True)
+        
+        if task["done"]:
+            label.config(fg="gray")
+                    
+        menuButton = tk.Menubutton(
+            itemFrame,
+            text="⋮",
+            font=("arial", 20)
+        )
+        menuButton.pack(side="right")
+        
+        reoderButtonsFrame = tk.Frame(itemFrame)
+        reoderButtonsFrame.pack()
+        
+        buttonUp = tk.Button(
+            reoderButtonsFrame,
+            text="▲",
+            font=("arial", 5)
+        )
+        buttonUp.grid(row=1, column=1)
+        
+        buttonDown = tk.Button(
+            reoderButtonsFrame,
+            text="▼",
+            font=("arial", 5)
+        )
+        buttonDown.grid(row=2, column=1)
+        
+        
+                    
+        menu = tk.Menu(menuButton, tearoff=0)
+        
+        menu.add_command(
+            label="Mark as done" if not task["done"] else "Mark as undone",
+            command=lambda: toggleDone(task, label, menu)
+    )
+
+        menu.add_command(
+            label="Edit",
+            command=lambda: editTask(task, label, itemFrame)
+        )
+        menu.add_command(
+            label="Delete",
+            command=lambda: deleteTask(task, itemFrame)
+        )
+                    
+                    
+                    
+        menuButton.config(menu=menu)
+                    
+    
+    for task in tasks:
+        createTask(task)
     
     
     listText = tk.Entry(
